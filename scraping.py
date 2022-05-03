@@ -19,6 +19,8 @@ def scrape_all():
     browser = Browser('chrome', **executable_path, headless=True)
 
     news_title, news_paragraph = mars_news(browser)
+    hemisphere_image_urls = hem_data(browser) 
+    #I think this using hem_data function in order to define the variable
 
     # Run all scraping functions and store results in dictionary
     data = {
@@ -26,7 +28,8 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "List_of_imgs_titles": hemisphere_image_urls
     }
     # Stop webdriver and return data
     browser.quit()
@@ -146,7 +149,37 @@ def mars_facts():
 
     return df.to_html(classes="table table-striped")
 
+def hem_data(browser):
+    #define the website we are visiting
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+    # delay for loading the page
+    #browser.is_element_present_by_css('div.list_text', wait_time=1)
 
+    #define beautiful soup to parse through html code
+    html = browser.html
+    img_soup = soup(html, 'html.parser')
+    
+    #scrape hemisphere data /UNSURE IF I NEED TO CHANGE VARIABLES
+    hemisphere_image_urls = []
+    thumbnails = browser.find_by_css('a.product-item img')
+
+    for image in range(len(thumbnails)):
+        hemispheres = {}
+
+        browser.find_by_css('a.product-item img')[image].click()
+
+        full = browser.links.find_by_text('Sample').first
+        hemispheres['image_url'] = full['href']
+
+        title = browser.find_by_css("h2.title").text
+        hemispheres['title'] = title
+
+        hemisphere_image_urls.append(hemispheres)
+
+        browser.back()
+    #return scraped data as a list of dictionairies w/URL string anf title of each hemisphere image
+    return hemisphere_image_urls
 
 # In[16]:
 
